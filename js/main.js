@@ -1,98 +1,77 @@
-// alert("empezemos con la aventura de programar");
+// Precios de los productos
+const precios = {
+    Hamburguesa: 150,
+    Pizza: 280,
+    Ensalada: 100,
+    Sushi: 150,
+    Pasta: 80
+};
 
+// Función para agregar un producto a la lista
+function agregarProducto() {
+    let producto = document.getElementById("producto").value;     
+    let cantidad = parseInt(document.getElementById("cantidad").value);
 
-
-
-const PRECIO_PRODUCTO_1 = 120;
-
-
-
-let especialidad = prompt ("que estas buscando,comida o bebida");
-let nombreProducto = prompt("ingresa platillo")
-
-
-//esta función se encarga de mostrar en la consola la información de cada elemento del array menu de una manera específica.
-function mostrarMenu (menu){ 
-   menu.forEach( menu => console.log(menu.nombreProducto+ " - " +menu.especialidad+ " - " +menu.precio));
-}
-
-//const resultado = menu: Crea una nueva variable llamada resultado y le asigna el valor del array menu la función filtrarMenu filtra el array menu basándose en dos funciones de filtro (filtrarnombreProducto y filtrarespecialidad). Luego, si hay elementos que cumplen con las condiciones de ambos filtros, muestra la información de esos elementos utilizando la función mostrarMenu. Si no hay elementos que cumplan con las condiciones, muestra una alerta indicando que no tienen esa especialidad.
-function filtrarMenu(){
-   const resultado = menu
-   .filter(filtrarnombreProducto)
-   .filter(filtrarespecialidad);
-
-
-
-
-   if(resultado.length > 0){
-    mostrarMenu (resultado);
-
-   }else{
-    alert("no tenemos esa especialidad") 
-     
-   }
-}
-
-function filtrarnombreProducto(menu){
-    if(nombreProducto){
-        return menu.nombreProducto === nombreProducto;
-
-    }
-   //Si la variable nombreProducto no está definida o es falsa, la función simplemente devuelve el valor original del parámetro menu sin aplicar ningún filtro
-    return menu;
-}
-
-function filtrarespecialidad(menu){
-    if(especialidad){
-        return menu.especialidad === especialidad;
-
-    }   
-    return menu;
-}
-
-
-//filtrarMenu(menu);//llamado de funcion donde se ingresara producto y/o especialidad.
-
-/**************************************************************************************************************************************************************************** */
-
- let producto = prompt("Cuantos productos llevas");
-
-
-
-
-function calcularProducto (producto) {
-    return producto * PRECIO_PRODUCTO_1;
-}
-
-//document.write("Seleccionaste: " + producto + " productos")
-console.log("Seleccionaste: " + producto + " productos");
-
-//funcion para comenzar la captura de producto
-function elegirProducto (){
-    if (producto > 0) {
-
-        let totalCuenta = calcularProducto(producto); // se manda a llamar la función
-            console.log("Tu cuenta es por " + totalCuenta);
-    
-        let monto = parseFloat(prompt("Con cuánto vas a pagar?"));
-    
-        while (monto < totalCuenta) {
-            console.log("Su pago fue de " + monto + " falta por pagar");
-                alert("falta por pagar $" +( totalCuenta - monto))
-                    monto = parseFloat(prompt("Con cuánto vas a pagar?"));
-            
-          
-        }
-        console.log("Gracias por su pago. ¡Compra exitosa!");
-            alert( "su cambio $" + (monto - totalCuenta));
-       
-    } else {
-        alert("Refresca para volver a intentar");
+    if (isNaN(cantidad)) {
+        alert('Por favor, ingrese una cantidad válida.');
+        return;
     }
 
-}//terina funcion elegeir producto
+    let precio = precios[producto]; //variable que se enlaza con el objeto precios 
+    let totalProducto = cantidad * precio;
 
+    // Crear objeto con la información del producto
+    let productoInfo = {
+        nombre: producto,
+        cantidad: cantidad,
+        precio: precio,
+        total: totalProducto
+    };
 
-console.table(menu)
-elegirProducto()
+    // Guardar el producto en el localStorage
+    let productos = JSON.parse(localStorage.getItem("productos")) || [];
+    productos.push(productoInfo);
+    localStorage.setItem("productos", JSON.stringify(productos));
+
+    // Actualizar la lista de productos y el total en la interfaz
+    actualizarLista();  
+ }
+// Función para actualizar la lista de productos y el total
+function actualizarLista() {
+    let listaProductos = document.getElementById("listaProductos");
+    let totalElemento = document.getElementById('total');
+
+    // Limpiar la lista y el total
+    listaProductos.innerHTML = '';
+    let total = 0;
+
+    // Obtener productos del localStorage
+    let productos = JSON.parse(localStorage.getItem('productos')) || [];
+
+    // Recorrer la lista de productos y mostrar en la interfaz
+    productos.forEach(function(producto) {
+
+let li = document.createElement('li');
+        li.textContent = producto.nombre + " - Cantidad: " + producto.cantidad + ", Precio: $" + producto.precio.toFixed(2) + ", Total: $" + producto.total.toFixed(2);
+        listaProductos.appendChild(li);
+
+        total += producto.total;
+    });
+
+    // Actualizar el total en la interfaz
+    totalElemento.textContent = total.toFixed(2);
+}
+ 
+// Función para realizar el cobro
+function cobrar() {   
+
+    // Después de realizar el cobro, limpiar el localStorage y la interfaz
+    localStorage.removeItem("productos");
+    actualizarLista();
+    alert("Cobro realizado con éxito.");}
+
+// Cargar la lista de productos al cargar la página
+window.onload = function() {
+    actualizarLista();
+};
+
