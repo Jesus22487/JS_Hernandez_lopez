@@ -1,77 +1,103 @@
-// Precios de los productos
-const precios = {
-    Hamburguesa: 150,
-    Pizza: 280,
-    Ensalada: 100,
-    Sushi: 150,
-    Pasta: 80
-};
 
-// Función para agregar un producto a la lista
-function agregarProducto() {
-    let producto = document.getElementById("producto").value;     
-    let cantidad = parseInt(document.getElementById("cantidad").value);
 
-    if (isNaN(cantidad)) {
-        alert('Por favor, ingrese una cantidad válida.');
-        return;
+document.addEventListener("DOMContentLoaded", function () {
+  const productos = document.querySelectorAll('.card');
+  const listaCarrito = document.getElementById('listaCarrito');
+  const totalCarrito = document.getElementById('totalCarrito');
+  const vaciarCarritoBtn = document.getElementById('vaciarCarrito');
+  const realizarPagoBtn = document.getElementById('realizarPago');
+
+  
+  //almacenar con localstorage.getitem con key carrito que es el id en HTML.
+  //
+  let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+
+  productos.forEach((producto, index) => {
+    const ordenarBtn = producto.querySelector('.Ordenar');
+    const inputCantidad = producto.querySelector('input');
+    const precioProducto = parseFloat(producto.getAttribute('dataPrecio'));
+
+    ordenarBtn.addEventListener('click', () => {
+      const cantidad = parseInt(inputCantidad.value);
+      if (cantidad > 0) {
+        agregarAlCarrito(index, cantidad, precioProducto);
+        actualizarCarrito();
+      } else {
+        Swal.fire("Ingresa al menos un producto");
+      }
+    });
+  });
+
+  vaciarCarritoBtn.addEventListener('click', () => {
+    carrito = [];    
+      localStorage.removeItem('carrito');
+        actualizarCarrito();
+  });
+
+  
+  realizarPagoBtn.addEventListener('click', () => {
+    if (carrito.length > 0) {
+      const total = calcularTotal();
+     
+      Swal.fire({
+        position: "top",
+        icon: "success",
+        title: (`Gracias por su compra: $${total.toFixed(2)}`),
+        showConfirmButton: false,        
+      });
+
+      localStorage.removeItem('carrito');
+
+      console.log("entra el temporizador 2 seg");
+      setTimeout(() => {        
+        location.reload();
+      }, 2000);
+            
+      } else {
+      Swal.fire("Añade productos al carrito antes de realizar el pago.");
     }
+               
+  });
+  
 
-    let precio = precios[producto]; //variable que se enlaza con el objeto precios 
-    let totalProducto = cantidad * precio;
-
-    // Crear objeto con la información del producto
-    let productoInfo = {
-        nombre: producto,
-        cantidad: cantidad,
-        precio: precio,
-        total: totalProducto
+  function agregarAlCarrito(index, cantidad, precioProducto) {
+    const producto = {
+      nombre: productos[index].querySelector('.cardTitle').textContent,
+      precio: precioProducto,
+      cantidad: cantidad
     };
 
-    // Guardar el producto en el localStorage
-    let productos = JSON.parse(localStorage.getItem("productos")) || [];
-    productos.push(productoInfo);
-    localStorage.setItem("productos", JSON.stringify(productos));
+    const existente = carrito.find(item => item.nombre === producto.nombre);
 
-    // Actualizar la lista de productos y el total en la interfaz
-    actualizarLista();  
- }
-// Función para actualizar la lista de productos y el total
-function actualizarLista() {
-    let listaProductos = document.getElementById("listaProductos");
-    let totalElemento = document.getElementById('total');
+    if (existente) {
+      existente.cantidad += cantidad;
+    } else {
+      carrito.push(producto);
+    }
 
-    // Limpiar la lista y el total
-    listaProductos.innerHTML = '';
-    let total = 0;
+    // Guardar carrito en localStorage
+    localStorage.setItem('carrito', JSON.stringify(carrito));
+  }
 
-    // Obtener productos del localStorage
-    let productos = JSON.parse(localStorage.getItem('productos')) || [];
+  function actualizarCarrito() {
+    console.log("actualizando el carro de compra");
+    listaCarrito.innerHTML = '';
 
-    // Recorrer la lista de productos y mostrar en la interfaz
-    productos.forEach(function(producto) {
-
-let li = document.createElement('li');
-        li.textContent = producto.nombre + " - Cantidad: " + producto.cantidad + ", Precio: $" + producto.precio.toFixed(2) + ", Total: $" + producto.total.toFixed(2);
-        listaProductos.appendChild(li);
-
-        total += producto.total;
+    carrito.forEach(producto => {
+      const li = document.createElement('li');
+      li.className = 'listGroupItem';
+      li.textContent = `${producto.nombre} - Cantidad: ${producto.cantidad}`;
+      listaCarrito.appendChild(li);
     });
 
-    // Actualizar el total en la interfaz
-    totalElemento.textContent = total.toFixed(2);
-}
- 
-// Función para realizar el cobro
-function cobrar() {   
+    const total = calcularTotal();
+    totalCarrito.textContent = total.toFixed(2);
+  }
 
-    // Después de realizar el cobro, limpiar el localStorage y la interfaz
-    localStorage.removeItem("productos");
-    actualizarLista();
-    alert("Cobro realizado con éxito.");}
+  actualizarCarrito();//se llama funcion para visualizar la lista de lo que se tenga almacenado en local storage
 
-// Cargar la lista de productos al cargar la página
-window.onload = function() {
-    actualizarLista();
-};
+  function calcularTotal() {
+    return carrito.reduce((total, producto) => total + producto.precio * producto.cantidad, 0);
+  }
+});
 
